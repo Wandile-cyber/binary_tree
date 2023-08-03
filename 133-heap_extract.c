@@ -1,79 +1,114 @@
-#include "binary_trees.h"
+#include <stdlib.h>
+
+typedef struct heap_s {
+    int data;
+    struct heap_s *left;
+    struct heap_s *right;
+} heap_t;
 
 /**
- * max - Finds the maximum node in a tree.
- * @tree: The pointer to the root of the tree.
- * Return: The node with the maximum value.
+ * swap - Swaps the values of two heap nodes
+ * @node1: First heap node
+ * @node2: Second heap node
  */
-heap_t *max(heap_t *tree)
-{
-	heap_t *curr_max, *left_max, *right_max;
-
-	if (!tree->left)
-		return (tree);
-	left_max = max(tree->left);
-	if (left_max->n > tree->n)
-		curr_max = left_max;
-	else
-		curr_max = tree;
-	if (tree->right)
-	{
-		right_max = max(tree->right);
-		if (right_max->n > curr_max->n)
-			curr_max = right_max;
-		else
-			curr_max = tree;
-	}
-	return (curr_max);
+void swap(heap_t *node1, heap_t *node2) {
+    int temp = node1->data;
+    node1->data = node2->data;
+    node2->data = temp;
 }
 
 /**
- * recurse_extract - Recursively extracts the max from the tree.
- * @tree: The pointer to the root of the tree.
+ * heapify_down - Restores the heap property by moving a node down the heap
+ * @root: Pointer to the root node of the heap
  */
-void recurse_extract(heap_t *tree)
-{
-	heap_t *sub_max, *right_max = NULL;
+void heapify_down(heap_t *root) {
+    heap_t *largest = root;
+    heap_t *left = root->left;
+    heap_t *right = root->right;
 
-	if (!tree->left)
-		return;
-	sub_max = max((tree)->left);
-	if (tree->right)
-		right_max = max(tree->right);
-	if (right_max && right_max->n > sub_max->n)
-		sub_max = right_max;
-	tree->n = sub_max->n;
-	if (!sub_max->left)
-	{
-		if (sub_max->parent && sub_max->parent->left == sub_max)
-			sub_max->parent->left = NULL;
-		if (sub_max->parent && sub_max->parent->right == sub_max)
-			sub_max->parent->right = NULL;
-		free(sub_max);
-	}
-	else
-		recurse_extract(sub_max);
+    if (left != NULL && left->data > largest->data) {
+        largest = left;
+    }
+
+    if (right != NULL && right->data > largest->data) {
+        largest = right;
+    }
+
+    if (largest != root) {
+        swap(root, largest);
+        heapify_down(largest);
+    }
 }
 
 /**
- * heap_extract - Extracts the root from a Binary Heap.
- * @root: The pointer to the root of the tree.
- * Return: The value of the extracted node.
+ * get_last_node - Finds the last node in the heap using level-order traversal
+ * @root: Pointer to the root node of the heap
+ *
+ * Return: Pointer to the last node
  */
-int heap_extract(heap_t **root)
-{
-	int value;
+heap_t *get_last_node(heap_t *root) {
+    if (root == NULL) {
+        return NULL;
+    }
 
-	if (!*root)
-		return (0);
-	value = (*root)->n;
-	if (!(*root)->left)
-	{
-		value = (*root)->n;
-		free(*root);
-		*root = NULL;
-		return (value);
-	}
-	recurse_extract(*root);
-	return (value);
+    heap_t *queue[1024];
+    int front = 0;
+    int rear = 0;
+
+    queue[rear++] = root;
+    heap_t *last_node = NULL;
+
+    while (front < rear) {
+        heap_t *node = queue[front++];
+
+        if (node->left != NULL) {
+            queue[rear++] = node->left;
+        }
+
+        if (node->right != NULL) {
+            queue[rear++] = node->right;
+        }
+
+        last_node = node;
+    }
+
+    return last_node;
+}
+
+/**
+ * heap_extract - Extracts the root node of a Max Binary Heap
+ * @root: Double pointer to the root node of the heap
+ *
+ * Return: Value stored in the root node, or 0 on failure
+ */
+int heap_extract(heap_t **root) {
+    if (root == NULL || *root == NULL) {
+        return 0;  // Return 0 if root is NULL
+    }
+
+    int extracted_value = (*root)->data;
+
+    heap_t *last_node = get_last_node(*root);
+
+    if (*root == last_node) {
+        free(*root);
+        *root = NULL;
+        return extracted_value;
+    }
+
+    (*root)->data = last_node->data;
+
+    heap_t *parent = last_node->parent;
+
+    if (parent->left == last_node) {
+        parent->left = NULL;
+    } else {
+        parent->right = NULL;
+    }
+
+    free(last_node);
+
+    heapify_down(*root);
+
+    return extracted_value;
 }
