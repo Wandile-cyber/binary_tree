@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "binary_trees.h"
 
 typedef struct heap_s {
     int data;
