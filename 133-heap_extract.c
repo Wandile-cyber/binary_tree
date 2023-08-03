@@ -1,34 +1,36 @@
 #include "binary_trees.h"
 
+int heap_extract(heap_t **root);
+void recurse_extract(heap_t *tree);
+heap_t *max(heap_t *tree);
 /**
- * max - Finds the maximum node in a tree.
- * @tree: The pointer to the root of the tree.
- * Return: The node with the maximum value.
+ * heap_extract - Extracts the root node of a Max Binary Heap.
+ *
+ * @root: A double pointer to the root node of heap.
+ *
+ * Return: The value stored in the root node.
  */
-heap_t *max(heap_t *tree)
+int heap_extract(heap_t **root)
 {
-	heap_t *curr_max, *left_max, *right_max;
+	int value;
 
-	if (!tree->left)
-		return (tree);
-	left_max = max(tree->left);
-	if (left_max->n > tree->n)
-		curr_max = left_max;
-	else
-		curr_max = tree;
-	if (tree->right)
+	if (!*root)
+		return (0);
+	value = (*root)->n;
+	if (!(*root)->left)
 	{
-		right_max = max(tree->right);
-		if (right_max->n > curr_max->n)
-			curr_max = right_max;
-		else
-			curr_max = tree;
+		value = (*root)->n;
+		free(*root);
+		*root = NULL;
+		return (value);
 	}
-	return (curr_max);
+	recurse_extract(*root);
+	return (value);
 }
 
 /**
  * recurse_extract - Recursively extracts the max from the tree.
+ *
  * @tree: The pointer to the root of the tree.
  */
 void recurse_extract(heap_t *tree)
@@ -56,25 +58,30 @@ void recurse_extract(heap_t *tree)
 }
 
 /**
- * heap_extract - Extracts the root from a Binary Heap.
- * @root: The pointer to the root of the tree.
- * Return: The value of the extracted node.
+ * max - Finds the maximum node in a tree.
+ *
+ * @tree: The pointer to the root of the tree.
+ *
+ * Return: The node with the maximum value.
  */
-int heap_extract(heap_t **root)
+heap_t *max(heap_t *tree)
 {
-	int value;
+	heap_t *curr_max, *left_max, *right_max;
 
-	if (!*root)
-		return (0);
-	value = (*root)->n;
-	if (!(*root)->left)
+	if (!tree->left)
+		return (tree);
+	left_max = max(tree->left);
+	if (left_max->n > tree->n)
+		curr_max = left_max;
+	else
+		curr_max = tree;
+	if (tree->right)
 	{
-		value = (*root)->n;
-		free(*root);
-		*root = NULL;
-		return (value);
+		right_max = max(tree->right);
+		if (right_max->n > curr_max->n)
+			curr_max = right_max;
+		else
+			curr_max = tree;
 	}
-	recurse_extract(*root);
-	return (value);
+	return (curr_max);
 }
-
